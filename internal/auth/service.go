@@ -3,6 +3,8 @@ package auth
 import (
 	"errors"
 	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -27,7 +29,11 @@ func NewAuthService() *AuthService {
 
 func (s *AuthService) Login(email, password string) error {
 	for _, user := range s.userRepository {
-		if user.Email == email && user.Password == password {
+		if user.Email == email {
+			err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+			if err != nil {
+				return ErrUserNotFound
+			}
 			fmt.Println("Usuário autenticado com sucesso")
 			return nil
 		}
@@ -36,13 +42,18 @@ func (s *AuthService) Login(email, password string) error {
 }
 
 func (s *AuthService) Register(email, password string) error {
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
 	for _, user := range s.userRepository {
 		if user.Email == email {
 			return ErrUserAlreadyExists
 		}
 	}
 
-	s.userRepository = append(s.userRepository, User{Email: email, Password: password})
+	s.userRepository = append(s.userRepository, User{Email: email, Password: string(hashPassword)})
 	fmt.Println("Usuário cadastrado com sucesso")
 	return nil
 }
