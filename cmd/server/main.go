@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"goserver/internal/env"
+	"goserver/internal/plataform/env"
 	"goserver/internal/routes"
 	"net/http"
 )

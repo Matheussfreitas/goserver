@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"goserver/internal/env"
+	"goserver/internal/plataform/env"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
