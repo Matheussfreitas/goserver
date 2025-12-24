@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"database/sql"
 	"goserver/internal/auth"
 	"net/http"
 )
@@ -10,10 +11,10 @@ type Routes struct {
 	auth *auth.AuthController
 }
 
-func NewRoutes() *Routes {
+func NewRoutes(db *sql.DB) *Routes {
 	return &Routes{
 		mux:  http.NewServeMux(),
-		auth: auth.NewAuthController(),
+		auth: auth.NewAuthController(db),
 	}
 }
 
