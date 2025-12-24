@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -11,8 +12,9 @@ type AuthController struct {
 }
 
 // NewAuthController atua como o 'construtor'
-func NewAuthController() *AuthController {
-	return &AuthController{authService: NewAuthService()}
+func NewAuthController(db *sql.DB) *AuthController {
+	repo := NewUserRepository(db)
+	return &AuthController{authService: NewAuthService(db, repo)}
 }
 
 // Exemplo de método da 'classe'
@@ -35,7 +37,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.authService.Login(req.Email, req.Password); err != nil {
+	if err := c.authService.Login(r.Context(), req.Email, req.Password); err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			w.WriteHeader(http.StatusUnauthorized)
 		} else {
@@ -63,7 +65,7 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.authService.Register(req.Email, req.Password); err != nil {
+	if err := c.authService.Register(r.Context(), req.Email, req.Password); err != nil {
 		if errors.Is(err, ErrUserAlreadyExists) {
 			w.WriteHeader(http.StatusConflict) // 409 Conflict
 		} else {

@@ -1,59 +1,85 @@
 package auth
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"goserver/internal/domain"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+type AuthService struct {
+	db             *sql.DB
+	userRepository *UserRepository
+}
+
+func NewAuthService(db *sql.DB, userRepository *UserRepository) *AuthService {
+	return &AuthService{
+		db:             db,
+		userRepository: userRepository,
+	}
+}
 
 var (
 	ErrUserNotFound      = errors.New("usuário não encontrado")
 	ErrUserAlreadyExists = errors.New("usuário já cadastrado")
 )
 
-type AuthService struct {
-	userRepository []User
-}
-
-type User struct {
-	Email    string
-	Password string
-}
-
-func NewAuthService() *AuthService {
-	return &AuthService{
-		userRepository: []User{},
+func (s *AuthService) Login(ctx context.Context, email, password string) error {
+	user, err := s.userRepository.FindUserByEmail(ctx, nil, email)
+	if err != nil {
+		return err
 	}
-}
-
-func (s *AuthService) Login(email, password string) error {
-	for _, user := range s.userRepository {
-		if user.Email == email {
-			err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-			if err != nil {
-				return ErrUserNotFound
-			}
-			fmt.Println("Usuário autenticado com sucesso")
-			return nil
-		}
+	if user == nil {
+		return ErrUserNotFound
 	}
-	return ErrUserNotFound
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return ErrUserNotFound
+	}
+
+	fmt.Println("Usuário autenticado com sucesso")
+	return nil
 }
 
-func (s *AuthService) Register(email, password string) error {
+func (s *AuthService) Register(ctx context.Context, email, password string) error {
+	existingUser, err := s.userRepository.FindUserByEmail(ctx, nil, email)
+	if err != nil {
+		return err
+	}
+	
+	if existingUser != nil {
+		return ErrUserAlreadyExists
+	}
+
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-	for _, user := range s.userRepository {
-		if user.Email == email {
-			return ErrUserAlreadyExists
-		}
+	newUser := domain.User{
+		Email:    email,
+		Password: string(hashPassword),
 	}
 
-	s.userRepository = append(s.userRepository, User{Email: email, Password: string(hashPassword)})
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = s.userRepository.CreateUser(ctx, tx, newUser)
+	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
 	fmt.Println("Usuário cadastrado com sucesso")
 	return nil
 }
