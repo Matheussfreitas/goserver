@@ -1,4 +1,4 @@
-package auth
+package repository
 
 import (
 	"context"
@@ -27,15 +27,15 @@ func (r *UserRepository) CreateUser(ctx context.Context, tx *sql.Tx, user domain
 
 func (r *UserRepository) FindManyUsers(ctx context.Context, tx *sql.Tx) ([]domain.User, error) {
 	query := `SELECT id, email, password FROM users`
-	
+
 	var users []domain.User
-	
+
 	rows, err := tx.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	for rows.Next() {
 		var user domain.User
 		if err := rows.Scan(&user.ID, &user.Email, &user.Password); err != nil {
@@ -43,7 +43,7 @@ func (r *UserRepository) FindManyUsers(ctx context.Context, tx *sql.Tx) ([]domai
 		}
 		users = append(users, user)
 	}
-	
+
 	return users, nil
 }
 

@@ -1,45 +1,67 @@
 # Go Authentication Server
 
-Um servidor HTTP simples construído em Go pura (apenas standard library) para demonstrar uma implementação limpa de autenticação.
+Este é um projeto robusto de servidor HTTP em Go, reestruturado seguindo o padrão **Standard Go Project Layout**. Ele implementa um sistema completo de autenticação e gerenciamento de usuários utilizando **Clean Architecture** para garantir escalabilidade, testabilidade e manutenibilidade.
 
-## Sobre o Projeto
+## 🏗 Arquitetura
 
-Este projeto tem como objetivo servir de base para estudos sobre desenvolvimento web com Go, focando em:
-*   **API RESTful**: Endpoints que aceitam e retornam JSON.
-*   **Arquitetura em Camadas**: Separação clara entre `Controller` (HTTP) e `Service` (Regras de Negócio).
-*   **Tratamento de Erros**: Uso de *Sentinel Errors* para mapear erros de negócio para Status Codes HTTP corretos (401, 409, 500).
-*   **Roteamento Moderno**: Uso do `http.ServeMux` com a sintaxe de métodos (ex: `POST /path`) disponível nas versões mais recentes do Go.
+O projeto está organizado para separar responsabilidades de forma clara:
 
-## Funcionalidades
+*   **`cmd/api`**: Ponto de entrada da aplicação (`main.go`).
+*   **`internal/config`**: Gerenciamento de variáves de ambiente e configurações.
+*   **`internal/database`**: Configuração e conexão com o banco de dados (PostgreSQL).
+*   **`internal/domain`**: Definições das entidades principais do sistema (Structs).
+*   **`internal/repository`**: Camada de acesso a dados (SQL queries usando `pgx`).
+*   **`internal/service`**: Regras de negócio da aplicação (Hashing de senha, validações).
+*   **`internal/handler`**: Camada de transporte HTTP (Controllers, Roteamento, Parse de JSON).
+*   **`internal/middleware`**: Interceptadores de requisições (ex: Proteção de rotas com JWT).
+*   **`internal/utils`**: Funções utilitárias (ex: Geração e validação de JWT).
 
-*   **Cadastro (`POST /register`)**: Criação de novos usuários.
-*   **Login (`POST /login`)**: Autenticação de usuários existentes.
-*   *Nota: Atualmente utiliza armazenamento em memória (volátil).*
+## 🚀 Tecnologias Utilizadas
 
-## Como Rodar
+*   **Go 1.22+**: Linguagem principal.
+*   **PostgreSQL**: Banco de dados relacional.
+*   **pgx/v5**: Driver de alta performance para Postgres.
+*   **Golang-JWT**: Geração e validação de tokens JWT.
+*   **Bcrypt**: Hashing seguro de senhas.
+*   **net/http**: Servidor HTTP padrão do Go (com `ServeMux` moderno).
 
-1.  Certifique-se de ter o [Go instalado](https://go.dev/dl/).
-2.  Clone o repositório.
-3.  Execute o servidor:
+## ⚙️ Configuração
 
-```bash
-go run .
+Antes de rodar, certifique-se de configurar o arquivo `.env` na raiz do projeto com as seguintes chaves:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=seu_usuario
+DB_PASSWORD=sua_senha
+DB_NAME=goserver
+JWT_SECRET=sua_chave_secreta_super_segura
+SERVER_PORT=8080
 ```
 
-O servidor iniciará na porta `8080`.
+## 🏃 Como Rodar
 
-## Testando a API
+1.  **Clone o repositório** e entre na pasta.
+2.  **Baixe as dependências**:
+    ```bash
+    go mod tidy
+    ```
+3.  **Execute a aplicação**:
+    ```bash
+    go run cmd/api/main.go
+    ```
 
-Exemplo de requisição para Cadastro:
-```bash
-curl -X POST http://localhost:8080/register \
-   -H "Content-Type: application/json" \
-   -d '{"email":"teste@exemplo.com", "password":"123"}'
-```
+O servidor iniciará na porta definida no `.env` (ex: `8080`).
 
-Exemplo de requisição para Login:
-```bash
-curl -X POST http://localhost:8080/login \
-   -H "Content-Type: application/json" \
-   -d '{"email":"teste@exemplo.com", "password":"123"}'
-```
+## 📡 Endpoints
+
+### Público
+
+*   **`POST /register`**: Criação de novos usuários.
+    *   Body: `{"email": "...", "password": "..."}`
+*   **`POST /login`**: Autenticação de usuários. Retorna um Token JWT.
+    *   Body: `{"email": "...", "password": "..."}`
+
+### Protegido
+
+*   As rotas protegidas exigem o header: `Authorization: Bearer <TOKEN>`

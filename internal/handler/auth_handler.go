@@ -1,20 +1,23 @@
-package auth
+package handler
 
 import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"goserver/internal/repository"
+	"goserver/internal/service"
+	"goserver/internal/utils"
 	"net/http"
 )
 
 type AuthController struct {
-	authService *AuthService
+	authService *service.AuthService
 }
 
 // NewAuthController atua como o 'construtor'
 func NewAuthController(db *sql.DB) *AuthController {
-	repo := NewUserRepository(db)
-	return &AuthController{authService: NewAuthService(db, repo)}
+	repo := repository.NewUserRepository(db)
+	return &AuthController{authService: service.NewAuthService(db, repo)}
 }
 
 // Exemplo de método da 'classe'
@@ -38,7 +41,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.authService.Login(r.Context(), req.Email, req.Password); err != nil {
-		if errors.Is(err, ErrUserNotFound) {
+		if errors.Is(err, service.ErrUserNotFound) {
 			w.WriteHeader(http.StatusUnauthorized)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -50,10 +53,16 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, err := utils.GenerateToken(req.Email)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Login realizado com sucesso",
-		"token":   "exemplo-de-token-jwt",
+		"token":   token,
 	})
 }
 
@@ -66,7 +75,7 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.authService.Register(r.Context(), req.Email, req.Password); err != nil {
-		if errors.Is(err, ErrUserAlreadyExists) {
+		if errors.Is(err, service.ErrUserAlreadyExists) {
 			w.WriteHeader(http.StatusConflict) // 409 Conflict
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)

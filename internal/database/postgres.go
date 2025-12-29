@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"database/sql"
@@ -24,5 +24,5 @@ func NewPostgres(dsn string) (*sql.DB, error) {
 
 	fmt.Println("Conexão com o banco de dados estabelecida com sucesso")
 
-	return db, nil	
+	return db, nil
 }

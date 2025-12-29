@@ -1,4 +1,4 @@
-package auth
+package service
 
 import (
 	"context"
@@ -6,16 +6,17 @@ import (
 	"errors"
 	"fmt"
 	"goserver/internal/domain"
+	"goserver/internal/repository"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
 	db             *sql.DB
-	userRepository *UserRepository
+	userRepository *repository.UserRepository
 }
 
-func NewAuthService(db *sql.DB, userRepository *UserRepository) *AuthService {
+func NewAuthService(db *sql.DB, userRepository *repository.UserRepository) *AuthService {
 	return &AuthService{
 		db:             db,
 		userRepository: userRepository,
@@ -50,7 +51,7 @@ func (s *AuthService) Register(ctx context.Context, email, password string) erro
 	if err != nil {
 		return err
 	}
-	
+
 	if existingUser != nil {
 		return ErrUserAlreadyExists
 	}
