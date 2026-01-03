@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"goserver/internal/domain"
 	"goserver/internal/repository"
+	"goserver/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -28,22 +29,28 @@ var (
 	ErrUserAlreadyExists = errors.New("usuário já cadastrado")
 )
 
-func (s *AuthService) Login(ctx context.Context, email, password string) error {
+func (s *AuthService) Login(ctx context.Context, email, password string) (*domain.User, string, error) {
 	user, err := s.userRepository.FindUserByEmail(ctx, nil, email)
 	if err != nil {
-		return err
+		return nil, "", err
 	}
 	if user == nil {
-		return ErrUserNotFound
+		return nil, "", ErrUserNotFound
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return ErrUserNotFound
+		return nil, "", ErrUserNotFound
+	}
+
+	token, err := utils.GenerateToken(user.ID.String())
+	if err != nil {
+		return nil, "", err
 	}
 
 	fmt.Println("Usuário autenticado com sucesso")
-	return nil
+
+	return user, token, nil
 }
 
 func (s *AuthService) Register(ctx context.Context, email, password string) error {

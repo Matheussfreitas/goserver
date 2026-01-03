@@ -6,7 +6,6 @@ import (
 	"errors"
 	"goserver/internal/repository"
 	"goserver/internal/service"
-	"goserver/internal/utils"
 	"net/http"
 )
 
@@ -40,7 +39,8 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.authService.Login(r.Context(), req.Email, req.Password); err != nil {
+	user, token, err := c.authService.Login(r.Context(), req.Email, req.Password)
+	if err != nil {
 		if errors.Is(err, service.ErrUserNotFound) {
 			w.WriteHeader(http.StatusUnauthorized)
 		} else {
@@ -53,15 +53,10 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := utils.GenerateToken(req.Email)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Login realizado com sucesso",
+		"user":    user,
 		"token":   token,
 	})
 }
