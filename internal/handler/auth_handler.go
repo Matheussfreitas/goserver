@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"goserver/internal/middleware"
 	"goserver/internal/repository"
 	"goserver/internal/service"
 	"net/http"
@@ -20,11 +21,7 @@ func NewAuthController(db *sql.DB) *AuthController {
 }
 
 // Exemplo de método da 'classe'
-// RegisterRoutesAuth registra todas as rotas de autenticação
-func (c *AuthController) RegisterRoutesAuth(mux *http.ServeMux) {
-	mux.HandleFunc("POST /login", c.Login)
-	mux.HandleFunc("POST /register", c.Register)
-}
+// RegisterRoutesAuth foi movido para router.go para centralização
 
 type LoginRequest struct {
 	Email    string `json:"email"`
@@ -86,5 +83,14 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Usuário criado com sucesso",
+	})
+}
+
+func (c *AuthController) Me(w http.ResponseWriter, r *http.Request) {
+	email := r.Context().Value(middleware.UserEmailKey).(string)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"email":   email,
+		"message": "Dados do usuário autenticado",
 	})
 }

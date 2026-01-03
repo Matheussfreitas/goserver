@@ -10,19 +10,18 @@ import (
 
 func main() {
 	cfg := config.LoadConfig()
-	mux := http.NewServeMux()
 
 	dbConn, err := database.NewPostgres(cfg.DatabaseUrl)
 	if err != nil {
 		panic(err)
 	}
 
-	router := handler.PublicRoutes(dbConn)
-	router.AuthRoutes()
+	router := handler.NewRouter(dbConn)
+	router.RegisterRoutes()
 
 	fmt.Printf("Servidor rodando na porta %s\n", cfg.Port)
 
-	if err := http.ListenAndServe(":"+cfg.Port, mux); err != nil {
+	if err := http.ListenAndServe(":"+cfg.Port, router.GetHandler()); err != nil {
 		panic(err)
 	}
 }
