@@ -15,14 +15,26 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db}
 }
 
-func (r *UserRepository) CreateUser(ctx context.Context, tx *sql.Tx, user domain.User) error {
+func (r *UserRepository) CreateUser(ctx context.Context, tx *sql.Tx, user *domain.User) error {
 	query := `
-	INSERT INTO users (email, password)	
-	VALUES ($1, $2)
-	RETURNING id
+	INSERT INTO users (
+		name,
+		email,	
+		password,
+		active,
+	)	VALUES ($1, $2, $3, $4)
+	RETURNING id, created_at, updated_at
 	`
 
-	return tx.QueryRowContext(ctx, query, user.Email, user.Password).Scan(&user.ID)
+	var row *sql.Row
+
+	if tx != nil {
+		row = tx.QueryRowContext(ctx, query, user.Name, user.Email, user.Password, user.Active)
+	} else {
+		row = r.db.QueryRowContext(ctx, query, user.Name, user.Email, user.Password, user.Active)
+	}
+
+	return row.Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
 }
 
 func (r *UserRepository) FindManyUsers(ctx context.Context, tx *sql.Tx) ([]domain.User, error) {

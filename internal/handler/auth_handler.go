@@ -66,7 +66,7 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.authService.Register(r.Context(), req.Email, req.Password); err != nil {
+	if _, err := c.authService.Register(r.Context(), req.Email, req.Password); err != nil {
 		if errors.Is(err, service.ErrUserAlreadyExists) {
 			w.WriteHeader(http.StatusConflict) // 409 Conflict
 		} else {

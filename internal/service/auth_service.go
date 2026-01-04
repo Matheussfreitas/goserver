@@ -53,41 +53,42 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (*domai
 	return user, token, nil
 }
 
-func (s *AuthService) Register(ctx context.Context, email, password string) error {
+func (s *AuthService) Register(ctx context.Context, email, password string) (*domain.User, error) {
 	existingUser, err := s.userRepository.FindUserByEmail(ctx, nil, email)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if existingUser != nil {
-		return ErrUserAlreadyExists
+		return nil, ErrUserAlreadyExists
 	}
 
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	newUser := domain.User{
 		Email:    email,
 		Password: string(hashPassword),
+		Active:   true,
 	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer tx.Rollback()
 
-	err = s.userRepository.CreateUser(ctx, tx, newUser)
+	err = s.userRepository.CreateUser(ctx, tx, &newUser)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return err
+		return nil, err
 	}
 
 	fmt.Println("Usuário cadastrado com sucesso")
-	return nil
+	return &newUser, nil
 }
