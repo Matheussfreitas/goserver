@@ -9,10 +9,11 @@ import (
 
 var jwtKey = []byte(config.LoadConfig().JWTSecret)
 
-func GenerateToken(id string) (string, error) {
+func GenerateToken(id, email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"authorized": true,
 		"sub":        id,
+		"email":      email,
 		"exp":        time.Now().Add(time.Hour * 24).Unix(),
 	})
 

@@ -43,7 +43,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (*domai
 		return nil, "", ErrUserNotFound
 	}
 
-	token, err := utils.GenerateToken(user.ID.String())
+	token, err := utils.GenerateToken(user.ID.String(), user.Email)
 	if err != nil {
 		return nil, "", err
 	}
@@ -53,7 +53,9 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (*domai
 	return user, token, nil
 }
 
-func (s *AuthService) Register(ctx context.Context, email, password string) (*domain.User, error) {
+func (s *AuthService) Register(ctx context.Context, name, email, password string) (*domain.User, error) {
+	fmt.Println("Registrando usuário...")
+
 	existingUser, err := s.userRepository.FindUserByEmail(ctx, nil, email)
 	if err != nil {
 		return nil, err
@@ -63,16 +65,21 @@ func (s *AuthService) Register(ctx context.Context, email, password string) (*do
 		return nil, ErrUserAlreadyExists
 	}
 
+	fmt.Println("Criando hash de senha...")
+
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 
 	newUser := domain.User{
+		Name:     name,
 		Email:    email,
 		Password: string(hashPassword),
 		Active:   true,
 	}
+
+	fmt.Println("Iniciando transação...")
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -80,12 +87,16 @@ func (s *AuthService) Register(ctx context.Context, email, password string) (*do
 	}
 	defer tx.Rollback()
 
+	fmt.Println("Salvando usuário...")
+
 	err = s.userRepository.CreateUser(ctx, tx, &newUser)
 	if err != nil {
+		fmt.Println("Erro ao salvar usuário:", err)
 		return nil, err
 	}
 
 	if err = tx.Commit(); err != nil {
+		fmt.Println("Erro ao confirmar transação:", err)
 		return nil, err
 	}
 

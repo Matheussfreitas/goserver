@@ -21,7 +21,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, tx *sql.Tx, user *domai
 		name,
 		email,	
 		password,
-		active,
+		active
 	)	VALUES ($1, $2, $3, $4)
 	RETURNING id, created_at, updated_at
 	`
@@ -64,7 +64,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, tx *sql.Tx, email 
 
 	var user domain.User
 
-	row := tx.QueryRowContext(ctx, query, email)
+	var row *sql.Row
 
 	if tx == nil {
 		row = r.db.QueryRowContext(ctx, query, email)

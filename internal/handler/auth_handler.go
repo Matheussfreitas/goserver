@@ -28,6 +28,12 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type RegisterRequest struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 
@@ -59,14 +65,14 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
-	var req LoginRequest
+	var req RegisterRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Erro ao ler JSON", http.StatusBadRequest)
 		return
 	}
 
-	if _, err := c.authService.Register(r.Context(), req.Email, req.Password); err != nil {
+	if _, err := c.authService.Register(r.Context(), req.Name, req.Email, req.Password); err != nil {
 		if errors.Is(err, service.ErrUserAlreadyExists) {
 			w.WriteHeader(http.StatusConflict) // 409 Conflict
 		} else {
