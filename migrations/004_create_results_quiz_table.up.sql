@@ -1,0 +1,11 @@
+CREATE TABLE results_quiz (
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	quiz_id UUID NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+	user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+	score INTEGER NOT NULL,
+  total_questions INTEGER NOT NULL,
+  answers JSONB NOT NULL,
+
+	completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
