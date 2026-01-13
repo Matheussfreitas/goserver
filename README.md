@@ -87,32 +87,60 @@ GEMINI_API_KEY=sua_api_key_do_google_gemini
 ## Como Rodar Localmente
 
 ### Pré-requisitos
-*   Go instalado
-*   PostgreSQL rodando e com o banco criado
+*   Go instalado (1.22+)
+*   Docker e Docker Compose instalados
+*   Ferramenta [golang-migrate](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate) instalada (opcional, para uso do Makefile)
 
-### Passos
+### Usando Docker Compose (Recomendado)
 
-1.  **Clone o repositório**:
+O projeto já vem com um arquivo `docker-compose.yml` configurado para subir o banco de dados PostgreSQL, Redis e rodar as migrações automaticamente.
+
+1.  **Configure o .env**:
+    Crie um arquivo `.env` na raiz do projeto e preencha as variáveis necessárias. Note que para simplificar o uso com Docker Compose, você pode usar os valores padrão definidos no `docker-compose.yml` ou ajustá-los.
+
     ```bash
-    git clone https://github.com/Matheussfreitas/goserver.git
-    cd goserver
+    # Exemplo de variáveis adicionais para o compose
+    POSTGRES_USER=postgres
+    POSTGRES_PASSWORD=postgres
+    POSTGRES_DB=goserver
     ```
 
-2.  **Instale as dependências**:
+2.  **Suba os containers**:
     ```bash
-    go mod tidy
+    docker-compose up -d
     ```
 
-3.  **Configure o ambiente**:
-    *   Copie o exemplo acima para um arquivo `.env`.
-    *   Certifique-se que o banco de dados existe.
+    Isso iniciará:
+    *   **PostgreSQL**: Banco de dados na porta 5432.
+    *   **Redis**: Cache na porta 6379.
+    *   **Migrate**: Container efêmero que aplica as migrações do banco.
 
-4.  **Execute a aplicação**:
+3.  **Execute a aplicação**:
+    Como o compose sobe apenas a infraestrutura, você pode rodar a aplicação Go localmente:
     ```bash
     go run cmd/api/main.go
     ```
 
-O servidor estará rodando em `http://localhost:8080`.
+4.  **Para parar os containers**:
+    ```bash
+    docker-compose down
+    ```
+
+### Usando o Makefile
+
+Se você tiver o `golang-migrate` instalado em sua máquina, pode usar o `Makefile` para gerenciar as migrações de forma manual.
+
+Certifique-se de que a variável `DATABASE_URL` está definida no seu `.env` ou exportada no terminal.
+
+*   **Aplicar migrações (Up)**:
+    ```bash
+    make migrate-up
+    ```
+
+*   **Reverter migrações (Down)**:
+    ```bash
+    make migrate-down
+    ```
 
 ---
 
