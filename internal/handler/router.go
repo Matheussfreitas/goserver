@@ -31,5 +31,6 @@ func (r *Routes) RegisterRoutes() {
 
 	// Rotas Protegidas
 	r.mux.Handle("GET /me", middleware.AuthMiddleware(http.HandlerFunc(r.auth.Me)))
+	r.mux.Handle("GET /quizzes", middleware.AuthMiddleware(http.HandlerFunc(r.quiz.FindManyQuizzes)))
+	r.mux.Handle("POST /quizzes", middleware.AuthMiddleware(http.HandlerFunc(r.quiz.CreateQuiz)))
 }
-

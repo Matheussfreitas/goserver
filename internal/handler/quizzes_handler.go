@@ -47,3 +47,14 @@ func (h *QuizHandler) CreateQuiz(w http.ResponseWriter, r *http.Request) {
 		"quiz":    quiz,
 	})
 }
+
+func (h *QuizHandler) FindManyQuizzes(w http.ResponseWriter, r *http.Request) {
+	quizzes, err := h.findManyQuizzesService.FindManyQuizzes()
+	if err != nil {
+		http.Error(w, "Erro ao buscar quizzes", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(quizzes)
+}
