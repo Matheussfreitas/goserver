@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -9,12 +10,13 @@ import (
 	"google.golang.org/genai"
 )
 
-func Gemini(prompt string) string {
+func Gemini(prompt string) (string, error) {
 	ctx := context.Background()
-	
+
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if apiKey == "" {
 		log.Fatal("GEMINI_API_KEY não configurada no ambiente")
+		return "", errors.New("GEMINI_API_KEY não configurada no ambiente")
 	}
 
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
@@ -22,6 +24,7 @@ func Gemini(prompt string) string {
 	})
 	if err != nil {
 		log.Fatal(err)
+		return "", err
 	}
 
 	result, err := client.Models.GenerateContent(
@@ -32,8 +35,9 @@ func Gemini(prompt string) string {
 	)
 	if err != nil {
 		log.Fatal(err)
+		return "", err
 	}
 
 	fmt.Println(result.Text())
-	return result.Text()
+	return result.Text(), nil
 }

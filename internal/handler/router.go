@@ -9,12 +9,14 @@ import (
 type Routes struct {
 	mux  *http.ServeMux
 	auth *AuthController
+	quiz *QuizHandler
 }
 
 func NewRouter(db *sql.DB) *Routes {
 	return &Routes{
 		mux:  http.NewServeMux(),
 		auth: NewAuthController(db),
+		quiz: NewQuizHandler(db),
 	}
 }
 
