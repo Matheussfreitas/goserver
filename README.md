@@ -60,26 +60,26 @@ A estrutura de pastas reflete a separação de responsabilidades:
 
 ## Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto seguindo o modelo abaixo:
+Crie um arquivo `.env` na raiz do projeto. Você pode usar o arquivo `.env.example` como base (se houver) ou seguir o modelo abaixo:
 
 ```env
-# Servidor
-SERVER_PORT=8080
-
-# Banco de Dados
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=seu_usuario
-DB_PASSWORD=sua_senha
-DB_NAME=goserver
-# Ou se preferir usar url de conexão direta nos drivers que suportam:
-# DB_URL=postgres://user:pass@localhost:5432/goserver
+# Server
+PORT=8080
 
 # Segurança
-JWT_SECRET=sua_hash_secreta_super_segura
+JWT_SECRET=sua_secret_key_super_segura
+
+# Banco de Dados
+DATABASE_URL=postgres://user:password@localhost:5432/goserver?sslmode=disable
+
+# Variáveis opcionais se estiver usando Docker Compose para definir o container do banco:
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=docker
+POSTGRES_DB=goserver
 
 # Inteligência Artificial (Google AI Studio)
-GEMINI_API_KEY=sua_api_key_do_google_gemini
+# Obtenha sua chave em: https://aistudio.google.com/
+GEMINI_API_KEY=sua_api_key_aqui
 ```
 
 ---
@@ -89,57 +89,28 @@ GEMINI_API_KEY=sua_api_key_do_google_gemini
 ### Pré-requisitos
 *   Go instalado (1.22+)
 *   Docker e Docker Compose instalados
-*   Ferramenta [golang-migrate](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate) instalada (opcional, para uso do Makefile)
 
-### Usando Docker Compose (Recomendado)
-
-O projeto já vem com um arquivo `docker-compose.yml` configurado para subir o banco de dados PostgreSQL, Redis e rodar as migrações automaticamente.
+### Passo a Passo
 
 1.  **Configure o .env**:
-    Crie um arquivo `.env` na raiz do projeto e preencha as variáveis necessárias. Note que para simplificar o uso com Docker Compose, você pode usar os valores padrão definidos no `docker-compose.yml` ou ajustá-los.
+    Crie o arquivo `.env` com as variáveis listadas acima.
 
-    ```bash
-    # Exemplo de variáveis adicionais para o compose
-    POSTGRES_USER=postgres
-    POSTGRES_PASSWORD=postgres
-    POSTGRES_DB=goserver
-    ```
-
-2.  **Suba os containers**:
+2.  **Suba a Infraestrutura**:
+    Utilize o Docker Compose para subir o banco de dados e aplicar as migrações automaticamente.
     ```bash
     docker-compose up -d
     ```
 
-    Isso iniciará:
-    *   **PostgreSQL**: Banco de dados na porta 5432.
-    *   **Redis**: Cache na porta 6379.
-    *   **Migrate**: Container efêmero que aplica as migrações do banco.
-
-3.  **Execute a aplicação**:
-    Como o compose sobe apenas a infraestrutura, você pode rodar a aplicação Go localmente:
+3.  **Rode a Aplicação**:
     ```bash
     go run cmd/api/main.go
     ```
+    O servidor iniciará (padrão porta 8080).
 
-4.  **Para parar os containers**:
-    ```bash
-    docker-compose down
-    ```
-
-### Usando o Makefile
-
-Se você tiver o `golang-migrate` instalado em sua máquina, pode usar o `Makefile` para gerenciar as migrações de forma manual.
-
-Certifique-se de que a variável `DATABASE_URL` está definida no seu `.env` ou exportada no terminal.
-
-*   **Aplicar migrações (Up)**:
+4.  **(Opcional) Migrações Manuais**:
+    Se precisar rodar migrações manualmente via Makefile:
     ```bash
     make migrate-up
-    ```
-
-*   **Reverter migrações (Down)**:
-    ```bash
-    make migrate-down
     ```
 
 ---
@@ -150,18 +121,18 @@ Certifique-se de que a variável `DATABASE_URL` está definida no seu `.env` ou 
 
 | Método | Caminho | Descrição | Payload Exemplo |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/register` | Cria novo usuário | `{"email": "...", "password": "..."}` |
-| `POST` | `/login` | Retorna JWT | `{"email": "...", "password": "..."}` |
+| `POST` | `/register` | Cria novo usuário | `{"email": "user@example.com", "password": "password123"}` |
+| `POST` | `/login` | Retorna JWT | `{"email": "user@example.com", "password": "password123"}` |
 
 ### Quizzes (Protegido)
 *Requer header `Authorization: Bearer <seu_token>`*
 
-| Método | Caminho | Descrição |
-| :--- | :--- | :--- |
-| `POST` | `/quizzes/generate` | Gera um novo quiz. Payload: `{"content": "...", "difficulty": "Medium", "questions_count": 5}` |
-| `GET` | `/quizzes` | Lista quizzes do usuário logado |
-| `GET` | `/quizzes/{id}` | Detalhes de um quiz específico |
-| `POST` | `/quizzes/{id}/submit` | Envia respostas para correção |
+| Método | Caminho | Descrição | Referência do Payload |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/quizzes/create` | Gera um novo quiz com IA | `{"tema": "Golang Interfaces", "numQuestoes": 5, "dificuldade": "medium"}` |
+| `GET` | `/quizzes` | Lista todos os quizzes do usuário | - |
+| `GET` | `/quizzes/{id}` | Busca detalhes de um quiz e suas questões | - |
+| `POST` | `/quizzes/submit` | Envia respostas de um quiz | `{"quiz_id": "uuid...", "answers": [{"question_id": "uuid...", "user_choice": 1}]}` |
 
 ---
 
