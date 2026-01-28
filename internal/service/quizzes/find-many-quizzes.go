@@ -18,6 +18,6 @@ func NewFindManyQuizzesService(repo *repository.QuizRepository, db *sql.DB) *Fin
 	}
 }
 
-func (s *FindManyQuizzesService) FindManyQuizzes() ([]domain.Quiz, error) {
-	return s.repo.FindManyQuizzes()
+func (s *FindManyQuizzesService) FindManyQuizzes(userId string) ([]domain.Quiz, error) {
+	return s.repo.FindManyQuizzes(userId)
 }

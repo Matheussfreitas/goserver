@@ -18,8 +18,8 @@ func NewFindQuizByIdService(repo *repository.QuizRepository, db *sql.DB) *FindQu
 	}
 }
 
-func (s *FindQuizByIdService) FindQuizById(id string) (*domain.Quiz, error) {
-	return s.repo.FindQuizById(id)
+func (s *FindQuizByIdService) FindQuizById(id, userId string) (*domain.Quiz, error) {
+	return s.repo.FindQuizById(id, userId)
 }
 
 

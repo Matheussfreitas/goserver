@@ -18,8 +18,8 @@ func NewSubmitQuizService(repo *repository.QuizRepository, db *sql.DB) *SubmitQu
 	}
 }
 
-func (s *SubmitQuizService) SubmitQuiz(resultQuiz domain.ResultQuiz) (*domain.ResultQuiz, error) {
-	quiz, err := s.repo.FindQuizById(resultQuiz.QuizID)
+func (s *SubmitQuizService) SubmitQuiz(resultQuiz domain.ResultQuiz, userId string) (*domain.ResultQuiz, error) {
+	quiz, err := s.repo.FindQuizById(resultQuiz.QuizID, userId)
 	if err != nil {
 		return nil, err
 	}
