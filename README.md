@@ -136,6 +136,40 @@ GEMINI_API_KEY=sua_api_key_aqui
 
 ---
 
+## Próximas Implementações
+
+Planejamento para evoluções futuras do projeto:
+
+### 1. Pipeline de CI/CD
+Estabelecer um fluxo automatizado de integração e entrega contínua:
+
+```mermaid
+graph TD;
+    A[Push / Merge] --> B[CI: Build + Testes];
+    B --> C[CI: Lint / Security / Quality];
+    C --> D[CD: Deploy];
+    D --> E[Rodar Migrations];
+    E --> F[Subir Nova Versão da API];
+```
+
+*   **CI (Continuous Integration)**: 
+    *   Build da aplicação garantindo que não há erros de compilação.
+    *   Execução de testes unitários e de integração.
+    *   Verificação de linting, segurança (SAST) e qualidade de código.
+*   **CD (Continuous Deployment)**:
+    *   Deploy automatizado em ambiente de produção.
+    *   Execução de migrações de banco de dados.
+    *   Restart/Update do serviço da API.
+
+### 2. Testes Automatizados
+*   Implementação de testes unitários para Services e Domain.
+*   Testes de integração para Handlers e Repository.
+
+### 3. Containerização (Dockerfile)
+*   Criação de `Dockerfile` otimizado (Multi-stage build) para gerar imagens leves e seguras da aplicação.
+
+---
+
 ## Contribuindo
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests.
