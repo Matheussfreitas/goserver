@@ -47,7 +47,9 @@ func (h *QuizHandler) CreateQuiz(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	quiz, err := h.createQuizService.CreateQuiz(req.Tema, req.NumQuestoes, req.Dificuldade)
+	userId := r.Context().Value("user_id").(string)
+
+	quiz, err := h.createQuizService.CreateQuiz(req.NumQuestoes, req.Dificuldade, req.Tema, userId)
 	if err != nil {
 		http.Error(w, "Erro ao criar quiz", http.StatusInternalServerError)
 		return
@@ -75,7 +77,8 @@ func (h *QuizHandler) SubmitQuiz(w http.ResponseWriter, r *http.Request) {
 		CompletedAt: time.Now(),
 	}
 
-	quiz, err := h.submitQuizService.SubmitQuiz(resultQuiz)
+	userId := r.Context().Value("user_id").(string)
+	quiz, err := h.submitQuizService.SubmitQuiz(resultQuiz, userId)
 	if err != nil {
 		http.Error(w, "Erro ao enviar quiz", http.StatusInternalServerError)
 		return
@@ -89,7 +92,9 @@ func (h *QuizHandler) SubmitQuiz(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *QuizHandler) FindManyQuizzes(w http.ResponseWriter, r *http.Request) {
-	quizzes, err := h.findManyQuizzesService.FindManyQuizzes()
+	userId := r.Context().Value("user_id").(string)
+
+	quizzes, err := h.findManyQuizzesService.FindManyQuizzes(userId)
 	if err != nil {
 		http.Error(w, "Erro ao buscar quizzes", http.StatusInternalServerError)
 		return
@@ -100,8 +105,10 @@ func (h *QuizHandler) FindManyQuizzes(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *QuizHandler) FindQuizById(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-	quiz, err := h.findQuizByIdService.FindQuizById(id)
+	id := r.PathValue("id")
+	userId := r.Context().Value("user_id").(string)
+
+	quiz, err := h.findQuizByIdService.FindQuizById(id, userId)
 	if err != nil {
 		http.Error(w, "Erro ao buscar quiz", http.StatusInternalServerError)
 		return
